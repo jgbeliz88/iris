@@ -1,0 +1,39 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: iris
+  namespace: iris
+spec:
+  host: iris
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN
+...
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: iris
+  namespace: iris
+spec:
+  gateways:
+    - istio-system/generic-gateway
+  hosts:
+    - iris-dev.cinconet.local
+  http:
+    - match:
+        - port: 80
+      route:
+        - destination:
+            host: iris
+            port:
+              number: 80
+    - match:
+        - port: 443
+      route:
+        - destination:
+            host: iris
+            port:
+              number: 80
+...

@@ -1,0 +1,7 @@
+@Library('ci-library') _
+
+pipelineMultibranchGeneric(
+    timeout_mins: 30,
+    app: 'iris',
+    ci_branch: 'dev'
+)

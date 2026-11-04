@@ -1,0 +1,16 @@
+{
+  "app": "iris",
+  "project_name": "iris",
+  "project_description": "Repositorio para el proyecto iris",
+  "developers_team": "dm",
+  "project_domain": "awsinternal.mediaset.es",
+  "vulnerability_alerts": true,
+  "terraform": {
+    "vault_paths": ["staging/dev", "staging/int", "staging/pre", "common", "pro"],
+    "vault_main_path": "apps_multi",
+    "vault_role_policies": ["apps_multi_pro_read", "apps_multi_staging_read", "checkmk", "legacy", "read_sistemascorp_global", "read_sistemasweb_global"],
+    "approvers_members_team": ["gjaguilera-mediaset"],
+    "push_group": ["desarrollo-multiplataforma"],
+    "approvers_parent_team": "2918545"
+  }
+}

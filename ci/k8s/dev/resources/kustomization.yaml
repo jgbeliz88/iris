@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: iris
+
+
+resources:
+- 00-vault.yaml
+- 01-sa.yaml
+- 02-dep.yaml
+- 03-svc.yaml
+- 04-gw.yaml
+- 05-hpa.yaml
+configMapGenerator:
+- envs:
+  - config/configuration.conf
+  name: configuration
+labels:
+- includeSelectors: true
+  pairs:
+    app: iris
+    env: dev
+    role: iris

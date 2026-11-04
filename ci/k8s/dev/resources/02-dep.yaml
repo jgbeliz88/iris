@@ -1,0 +1,104 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iris
+spec:
+  selector:
+    matchLabels:
+  strategy:
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: iris
+        env: dev
+        role: iris
+        version: v_$TAG
+      name: iris
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "3100"
+        proxy.istio.io/config: |
+          tracing:
+            sampling: 100
+            custom_tags:
+              my_tag_header:
+                header:
+                  name: host
+    spec:
+      serviceAccountName: iris
+      containers:
+      - name: iris
+        image: registry.mediaset.es/aws-ecr-cache/iris:$TAG
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        - containerPort: 3100
+        livenessProbe:
+          httpGet:
+            path: /status-simple
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 2
+          failureThreshold: 12
+        startupProbe:
+          httpGet:
+            path: /status-complete
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 2
+          failureThreshold: 12
+        envFrom:
+          - configMapRef:
+              name: configuration
+          - secretRef:
+              name: admincreds
+        env:
+          - name: JAEGER_SERVICE_NAME
+            value: iris.iris
+          - name: OTEL_EXPORTER_JAEGER_AGENT_HOST
+            value: jaeger-udp.istio-system.svc.cluster.local
+        volumeMounts:
+          - name: iris-auth-vault
+            mountPath: /mnt/secrets-store
+            readOnly: true
+        resources:
+          limits:
+            cpu: 500m
+          requests:
+            cpu: 200m
+      nodeSelector:
+        mds/role: APPS
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: iris
+              env: dev
+              role: iris
+      volumes:
+        - name: iris-auth-vault
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: iris-vault
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+...
+

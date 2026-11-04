@@ -1,0 +1,23 @@
+---
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: iris-vault
+spec:
+  provider: vault
+  secretObjects:
+    #### Cuidado si anadimos o cambiamos secretos es necesario borrar el secreto creado en kubernetes
+    #### para que lo recree con los nuevo valores https://github.com/kubernetes-sigs/secrets-store-csi-driver/issues/389
+    #### kubectl delete secret <secretName> -n <namespace>
+    - secretName: admincreds
+      type: Opaque
+      data:
+        - objectName: init_key
+          key: init_key
+  parameters:
+    roleName: iris
+    vaultKubernetesMountPath: rancher-dev-k8s-dev
+    objects: |
+      - objectName: "init_key"
+        secretPath: "apps_multi/data/iris/staging/dev"
+        secretKey: "init_key"

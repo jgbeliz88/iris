@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: iris
+  labels:
+    name: iris
+    role: iris
+    application: iris
+    istio-injection: enabled
+  annotations:
+    co.elastic.logs/enabled: "true"
+    replicate.ecr.secret: "true"
+    replicate.harbor.secret: "true"
+...
