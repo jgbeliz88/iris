@@ -16,6 +16,7 @@ Requiere VPN y sesión iniciada en ECR para descargar la imagen base:
 
 ```sh
 aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 088427993007.dkr.ecr.eu-west-1.amazonaws.com
+cp .env.example .env    # Y rellenar los valores
 docker compose up
 ```
 
@@ -29,7 +30,22 @@ docker compose up
 |---|---|---|
 | `GET` | `/status/status-simple` | `{"code":"OK","statusCode":200}` |
 | `GET` | `/status/status-complete` | `{"code":"OK","statusCode":200}` |
-| `POST` | `/assets/startCopy` | Devuelve el JSON recibido |
+| `POST` | `/assets/startCopy` | `{"body":<JSON recibido>,"enigmaBaseUrl":"<valor de ENIGMA_BASE_URL>"}` |
+
+### Variables de entorno
+
+| Variable | Obligatoria | Descripción |
+|---|---|---|
+| `ENIGMA_BASE_URL` | Sí | URL base del servicio Enigma |
+| `MEDIA_COPILOT_BASE_URL` | Sí | URL base del servicio Media Copilot |
+| `MEDIA_COPILOT_API_TOKEN` | Sí | Token de la API de Media Copilot. Es un secreto: no debe registrarse en los logs ni devolverse en las respuestas |
+
+La aplicación no arranca si falta alguna variable obligatoria o está vacía, e indica en el log todas las que faltan.
+
+- **En local**: se definen en `.env`, que no se sube al repositorio. Tras modificarlo, hay que volver a ejecutar `docker compose up`, ya que la recarga automática solo vigila `src/`.
+- **En Kubernetes**: gestionado por Sistemas. Las variables normales se definen en `ci/k8s/<entorno>/resources/config/configuration.conf` y los secretos, como los tokens, en Vault y `ci/k8s/<entorno>/resources/00-vault.yaml`.
+
+Para añadir una variable: declararla en `src/config/env.ts`, añadir su nombre sin valor a `.env.example` y pedir a Sistemas que la añada en cada entorno.
 
 ### Estructura
 

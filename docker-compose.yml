@@ -4,6 +4,8 @@ services:
       context: .
       target: development
     init: true
+    env_file:
+      - .env
     environment:
       APP_NAME: iris
       PORT: 3000
