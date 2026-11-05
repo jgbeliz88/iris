@@ -10,7 +10,59 @@ Los ficheros contienen lo básico. Hay que completar según proyectos:
 
 ## Estructura de ficheros DEV
 
-*DEV*
+### Ejecutar en local
+
+Requiere VPN y sesión iniciada en ECR para descargar la imagen base:
+
+```sh
+aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 088427993007.dkr.ecr.eu-west-1.amazonaws.com
+docker compose up
+```
+
+- La API queda en `http://localhost:3000` y el depurador en el puerto `9229`.
+- Los cambios en `src/` reinician la aplicación automáticamente, sin reconstruir la imagen.
+- Al cambiar dependencias, ejecutar `docker compose up --build`.
+
+### Endpoints
+
+| Método | Ruta | Respuesta |
+|---|---|---|
+| `GET` | `/status/status-simple` | `{"code":"OK","statusCode":200}` |
+| `GET` | `/status/status-complete` | `{"code":"OK","statusCode":200}` |
+| `POST` | `/assets/startCopy` | Devuelve el JSON recibido |
+
+### Estructura
+
+```
+src/
+  index.ts      # Arranque y parada de la aplicación
+  app.ts        # Construcción de la instancia de Fastify
+  config/       # Variables de entorno
+  plugins/      # Comportamiento global: logs de peticiones y gestión de errores
+  modules/      # Una carpeta por dominio: routes -> controller -> service
+  shared/       # Logger, errores y tipos comunes
+```
+
+Para añadir un dominio, crear `src/modules/<dominio>/` con estos ficheros y registrar las rutas en `src/app.ts`:
+
+- `<dominio>.routes.ts`: asocia cada URL con su controller.
+- `<dominio>.controller.ts`: lee la petición, llama al service y responde. Sin lógica de negocio.
+- `<dominio>.service.ts`: lógica de negocio, sin dependencias de Fastify. Recibe datos y un `TraceLogger`, y lanza `AppError` en los errores previstos.
+
+### Logs
+
+Cada petición genera dos líneas JSON con el mismo `traceId`:
+
+1. **Inicio**: se imprime al momento, con el método, la ruta, la query y el body. Una petición que se quede colgada deja así constancia. Una petición cuyo body no se puede parsear no genera esta línea.
+2. **Traza**: se imprime al terminar, con el body, los pasos del service, la respuesta y el código de estado.
+
+En los services, los pasos se registran con `log.step()`:
+
+```ts
+log.step('assets.startCopy', 'Respuesta recibida del servicio X', response);
+```
+
+`SAMPLE_LOG` debe quedar sin definir o a `100`; con un valor menor se descartan líneas de nivel `info`.
 
 ## Estructura de ficheros OPS
 
