@@ -5,8 +5,10 @@
 .settings
 .init_lock
 .husky
+.env
 
 build
+dist
 coverage
 
 **/.packer.d

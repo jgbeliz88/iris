@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    init: true
+    env_file:
+      - .env
+    environment:
+      APP_NAME: iris
+      PORT: 3000
+    volumes:
+      - ./src:/usr/src/app/src
+    ports:
+      - "3000:3000"
+      # Debugger: localhost only, since the inspector allows running arbitrary code
+      - "127.0.0.1:9229:9229"
